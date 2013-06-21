@@ -26,6 +26,7 @@
 @synthesize initialGlassLevel = _initialGlassLevel;
 @synthesize isGlassEffectOn = _isGlassEffectOn;
 @synthesize glassColor = _glassColor;
+@synthesize offsetThreshold = _offsetThreshold;
 
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -35,22 +36,22 @@
         _initialBlurLevel = kDKBlurredBackgroundDefaultLevel;
         _initialGlassLevel = kDKBlurredBackgroundDefaultGlassLevel;
         _glassColor = kDKBlurredBackgroundDefaultGlassColor;
-
+        
         _backgroundImageView = [[UIImageView alloc] initWithFrame: self.bounds];
         
         _backgroundImageView.alpha = 0.0;
         _backgroundImageView.contentMode = UIViewContentModeScaleToFill;
         _backgroundImageView.backgroundColor = [UIColor clearColor];
-
+        
         [self addSubview: _backgroundImageView];
         
         _backgroundGlassView = [[UIView alloc] initWithFrame: self.bounds];
         
         _backgroundGlassView.alpha = 0.0;
         _backgroundGlassView.backgroundColor = kDKBlurredBackgroundDefaultGlassColor;
-                
+        
         [self addSubview: _backgroundGlassView];
-
+        
     }
     return self;
 }
@@ -92,7 +93,7 @@
     inBuffer.data = (void*)CFDataGetBytePtr(inBitmapData);
     
     pixelBuffer = malloc(CGImageGetBytesPerRow(img) * CGImageGetHeight(img));
-        
+    
     outBuffer.data = pixelBuffer;
     outBuffer.width = CGImageGetWidth(img);
     outBuffer.height = CGImageGetHeight(img);
@@ -123,13 +124,13 @@
     //clean up
     CGContextRelease(ctx);
     CGColorSpaceRelease(colorSpace);
-    
+
     free(pixelBuffer);
     CFRelease(inBitmapData);
-    
+
     CGColorSpaceRelease(colorSpace);
     CGImageRelease(imageRef);
-    
+
     return returnImage;
 }
 
@@ -147,18 +148,15 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             
             self.backgroundImageView.alpha = 0.0;
-            self.backgroundImageView.image = blurredImage;            
+            self.backgroundImageView.image = blurredImage;
         });
     });
-    
-    dispatch_release(queue);
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object
                         change:(NSDictionary *)change context:(void *)context {
-    
-    self.backgroundImageView.alpha = self.tableView.contentOffset.y / (2 * self.frame.size.height / 3);
-    
+    self.backgroundImageView.alpha = (self.offsetThreshold + self.tableView.contentOffset.y) / self.offsetThreshold;
+
     if (self.isGlassEffectOn == YES) {
         self.backgroundGlassView.alpha = MAX(0.0, MIN(self.backgroundImageView.alpha - self.initialGlassLevel, self.initialGlassLevel));
     }

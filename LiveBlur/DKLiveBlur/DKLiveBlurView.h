@@ -20,5 +20,6 @@
 @property (nonatomic, assign) float initialGlassLevel;
 @property (nonatomic, assign) BOOL isGlassEffectOn;
 @property (nonatomic, strong) UIColor *glassColor;
+@property (nonatomic) CGFloat offsetThreshold;
 
 @end
